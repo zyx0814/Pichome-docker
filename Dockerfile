@@ -1,7 +1,7 @@
 FROM php:7.4-fpm-alpine3.14
 
 ENV PICHOME_VERSION beta3.2
-#RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 
 # entrypoint.sh and dependencies
 RUN set -ex; \
@@ -156,4 +156,5 @@ RUN set -ex; \
 COPY entrypoint.sh /
 
 ENTRYPOINT ["/entrypoint.sh"]
+RUN chmod +x /entrypoint.sh
 CMD ["/usr/bin/supervisord","-n","-c","/etc/supervisord.conf"]
