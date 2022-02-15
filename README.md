@@ -16,7 +16,7 @@ docker run -d -p 80:80 --restart=always -v /data:/var/www/html oaooa/pichome
         docker run -d -p 443:443 --restart=always  -v "你的证书目录":/etc/nginx/ssl --name pichome oaooa/pichome
         ```
 
-# 4.[使用docker-compose同时部署数据库（推荐）](https://github.com/zyx0814/Pichome-docker)
+# 4.使用docker-compose同时部署数据库（推荐）
 ```
 git clone https://github.com/zyx0814/Pichome-docker.git
 cd ./Pichome-docker/compose/
