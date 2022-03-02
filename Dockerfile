@@ -1,6 +1,6 @@
 FROM php:7.4-fpm-alpine3.14
 
-ENV PICHOME_VERSION beta3.2
+ENV PICHOME_VERSION beta3.3
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 
 # entrypoint.sh and dependencies
