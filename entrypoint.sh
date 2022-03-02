@@ -12,7 +12,7 @@ if  directory_empty "/var/www/html"; then
             rsync_options="-rlD"
         fi
         echo "PICHOME is installing ..."
-        rsync $rsync_options --delete /usr/src/pichome/ /var/www/html/
+        rsync $rsync_options --delete /usr/src/Pichome-master/ /var/www/html/
        
 else
         echo "PICHOME has been configured!"

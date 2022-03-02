@@ -145,9 +145,9 @@ RUN set -ex; \
     ; \
     \
     curl -fsSL -o pichome.zip \
-		"https://codeload.github.com/zyx0814/Pichome/zip/refs/tags/${PICHOME_VERSION}"; \ 
+		"https://codeload.github.com/zyx0814/Pichome/zip/refs/heads/master"; \ 
     export GNUPGHOME="$(mktemp -d)"; \
-    unzip pichome.zip -d /usr/src/pichome/; \
+    unzip pichome.zip -d /usr/src/; \
     gpgconf --kill all; \
     rm pichome.zip; \
     rm -rf "$GNUPGHOME"; \
