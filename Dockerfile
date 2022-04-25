@@ -55,7 +55,6 @@ RUN set -ex; \
         libjpeg-turbo-dev \
         libmcrypt-dev \
         libpng-dev \
-        libmemcached-dev \
         libxml2-dev \
         libzip-dev \
         openldap-dev \
@@ -90,13 +89,11 @@ RUN set -ex; \
     ; \
     \
 # pecl will claim success even if one install fails, so we need to perform each install separately
-    pecl install memcached; \
     pecl install redis; \
     pecl install mcrypt; \
     pecl install imagick; \
     \
     docker-php-ext-enable \
-        memcached \
         redis \
         mcrypt \
         imagick \
