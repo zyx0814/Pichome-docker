@@ -13,6 +13,7 @@ RUN set -ex; \
 	ffmpeg \
 	tzdata \
 	unzip \
+	sqlite \
 	nginx \
 	# forward request and error logs to docker log collector
 	  && ln -sf /dev/stdout /var/log/nginx/access.log \
@@ -64,6 +65,7 @@ RUN set -ex; \
         gettext-dev \
         libressl-dev \
         curl-dev \
+        sqlite-dev \
         imagemagick-dev \
     ; \
     \
@@ -78,6 +80,7 @@ RUN set -ex; \
         ldap \
         opcache \
         pcntl \
+         pdo_sqlite \
         pdo_mysql \
 	mysqli \
         zip \
