@@ -11,7 +11,7 @@ docker run -d -p 80:80 --restart=always -v /data:/var/www/html oaooa/pichome
 # 3.以https方式启动
  
 -  使用已有ssl证书
-    - 证书格式必须是 fullchain.pem  privkey.pem
+    - 证书格式必须是 fullchain.pem  privkey.key
         ```
         docker run -d -p 443:443 --restart=always  -v "你的证书目录":/etc/nginx/ssl --name pichome oaooa/pichome
         ```

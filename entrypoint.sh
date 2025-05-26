@@ -11,9 +11,17 @@ if  directory_empty "/var/www/html"; then
         else
             rsync_options="-rlD"
         fi
+        echo "PICHOME is downloading ..."
+        apk add --no-cache --virtual .fetch-deps gnupg
+        curl -fsSL -o pichome.zip "https://codeload.github.com/zyx0814/Pichome/zip/refs/heads/master"
+        export GNUPGHOME="$(mktemp -d)"
+        unzip pichome.zip -d /usr/src/
+        gpgconf --kill all
+        rm pichome.zip
+        rm -rf "$GNUPGHOME"
+        apk del .fetch-deps
         echo "PICHOME is installing ..."
         rsync $rsync_options --delete /usr/src/Pichome-master/ /var/www/html/
-       
 else
         echo "PICHOME has been configured!"
 fi

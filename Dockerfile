@@ -8,13 +8,16 @@ RUN set -ex; \
     apk update && apk upgrade &&\
     apk add --no-cache \
         rsync \
-	supervisor \
-	imagemagick \
-	ffmpeg \
-	tzdata \
-	unzip \
-	sqlite \
-	nginx \
+        supervisor \
+        imagemagick \
+        ffmpeg \
+        ffmpeg-libs \
+        libvpx \
+        libraw \
+        tzdata \
+        unzip \
+        sqlite \
+        nginx \
 	# forward request and error logs to docker log collector
 	  && ln -sf /dev/stdout /var/log/nginx/access.log \
 	  && ln -sf /dev/stderr /var/log/nginx/error.log \
@@ -80,9 +83,9 @@ RUN set -ex; \
         ldap \
         opcache \
         pcntl \
-         pdo_sqlite \
+        pdo_sqlite \
         pdo_mysql \
-	mysqli \
+	    mysqli \
         zip \
         gmp \
         bz2 \
@@ -137,20 +140,6 @@ RUN echo "cgi.fix_pathinfo=1" > ${php_vars} &&\
         ${fpm_conf}
 
 VOLUME /var/www/html
-
-RUN set -ex; \
-    apk add --no-cache --virtual .fetch-deps \
-        gnupg \
-    ; \
-    \
-    curl -fsSL -o pichome.zip \
-		"https://codeload.github.com/zyx0814/Pichome/zip/refs/heads/master"; \ 
-    export GNUPGHOME="$(mktemp -d)"; \
-    unzip pichome.zip -d /usr/src/; \
-    gpgconf --kill all; \
-    rm pichome.zip; \
-    rm -rf "$GNUPGHOME"; \
-    apk del .fetch-deps
 
 COPY entrypoint.sh /
 
