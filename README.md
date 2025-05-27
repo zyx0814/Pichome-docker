@@ -11,7 +11,7 @@ docker run -d -p 80:80 --restart=always -v /data:/var/www/html oaooa/pichome
 # 3.以https方式启动
  
 -  使用已有ssl证书
-    - 证书格式必须是 fullchain.pem  privkey.key
+    - 证书格式必须是 fullchain.pem  privkey.pem
         ```
         docker run -d -p 443:443 --restart=always  -v "你的证书目录":/etc/nginx/ssl --name pichome oaooa/pichome
         ```
@@ -22,4 +22,5 @@ git clone https://github.com/zyx0814/Pichome-docker.git
 cd ./Pichome-docker/compose/
 修改docker-compose.yaml，设置数据库root密码（MYSQL_ROOT_PASSWORD=密码）
 docker-compose up -d
+注:安装时数据库地址可以使用db
 ```
