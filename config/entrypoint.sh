@@ -1,0 +1,44 @@
+#!/bin/sh
+
+set -e
+
+directory_empty() {
+    [ -z "$(ls -A "$1/")" ]
+}
+if  directory_empty "/var/www/html"; then
+        if [ "$(id -u)" = 0 ]; then
+            rsync_options="-rlDog --chown nginx:root"
+        else
+            rsync_options="-rlD"
+        fi
+        echo "PICHOME is downloading ..."
+        apt-get update && apt-get install -y --no-install-recommends gnupg
+        curl -fsSL -o pichome.zip "https://codeload.github.com/zyx0814/Pichome/zip/refs/heads/master"
+        export GNUPGHOME="$(mktemp -d)"
+        unzip pichome.zip -d /usr/src/
+        gpgconf --kill all
+        rm pichome.zip
+        rm -rf "$GNUPGHOME"
+        apt-get purge -y --auto-remove gnupg && rm -rf /var/lib/apt/lists/*
+        echo "PICHOME is installing ..."
+        rsync $rsync_options --delete /usr/src/Pichome-master/ /var/www/html/
+else
+        echo "PICHOME has been configured!"
+fi
+# 检查证书是否存在，并动态切换 Nginx 配置
+if [ -f "/etc/nginx/ssl/server.crt" ] && [ -f "/etc/nginx/ssl/server.key" ]; then
+    echo "Found SSL certificates. Enabling HTTPS config."
+    cp /etc/nginx/templates/nginx-https.conf /etc/nginx/conf.d/default.conf
+else
+    echo "SSL certificates not found. Using HTTP config."
+    cp /etc/nginx/templates/nginx-http.conf /etc/nginx/conf.d/default.conf
+fi
+
+# 启动 cron 服务
+service cron start
+
+# 启动 PHP-FPM
+php-fpm -D
+
+# 启动 Nginx (在前台运行以防止容器退出)
+nginx -g "daemon off;"

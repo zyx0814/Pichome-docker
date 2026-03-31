@@ -44,7 +44,7 @@ docker-compose up -d --build
 
     ```yaml
     volumes:
-      - ./html:/var/www/html
+      - ./site:/var/www/html
       - ./ssl:/etc/nginx/ssl
       - ./cron_url.txt:/var/www/html/cron_url.txt # 添加这一行
     ```
@@ -66,32 +66,6 @@ docker-compose up -d --build
   - `php-fpm-www.conf`: 优化的 PHP-FPM 进程池配置。
 - `index.php`: 测试页面，显示 `phpinfo()`。
 
-## 媒体处理示例
-
-### 处理 PSD/HEIC 转换为 JPG (PHP)
-```php
-// 处理 PSD
-$im = new Imagick('input.psd[0]');
-$im->setImageFormat('jpg');
-$im->writeImage('output_psd.jpg');
-
-// 处理 HEIC
-$im = new Imagick('input.heic');
-$im->setImageFormat('jpg');
-$im->writeImage('output_heic.jpg');
-```
-
-### 处理视频缩略图 (FFmpeg)
-```bash
-# 在容器内运行
-ffmpeg -i video.mp4 -ss 00:00:01 -vframes 1 thumb.jpg
-```
-
-## PHP CLI 支持
-容器预装了 **Composer** 和必备的 CLI 扩展（readline, posix, pcntl）。
-
-- **运行 Composer**: `docker exec -it php74-web-service composer <command>`
-- **进入容器**: `docker exec -it php74-web-service bash`
 
 ## 日志说明
 为了保持容器精简，所有 Nginx 和 PHP 的日志均已重定向到 `/dev/null`。如需开启，请修改相应的配置文件（`nginx-http.conf`, `nginx-https.conf`, `custom-php.ini`）并重建容器。
