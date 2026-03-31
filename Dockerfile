@@ -1,148 +1,125 @@
-FROM php:8.4-fpm-alpine3.20
+# 使用 PHP 7.4-FPM 作为基础镜像 (基于 Debian Bullseye)
+FROM php:7.4-fpm-bullseye
 
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+# 设置工作目录
+WORKDIR /var/www/html
 
-# entrypoint.sh and dependencies
-RUN set -ex; \
-    \
-    apk update && apk upgrade &&\
-    apk add --no-cache \
-        rsync \
-        supervisor \
-        imagemagick \
-        ffmpeg \
-        ffmpeg-libs \
-        libvpx \
-        libraw \
-        tzdata \
-        unzip \
-        sqlite \
-        nginx \
-	# forward request and error logs to docker log collector
-	  && ln -sf /dev/stdout /var/log/nginx/access.log \
-	  && ln -sf /dev/stderr /var/log/nginx/error.log \
-	  && mkdir -p /run/nginx \
-	  && mkdir -p /var/log/supervisor && \
-	cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-	echo "Asia/Shanghai" > /etc/timezone
+# 设置环境变量以避免交互式提示
+ENV DEBIAN_FRONTEND=noninteractive
 
-ADD conf/supervisord.conf /etc/supervisord.conf
 
-# Copy our nginx config
-RUN rm -Rf /etc/nginx/nginx.conf
-ADD conf/nginx.conf /etc/nginx/nginx.conf
+# 替换为更通用的镜像源 (支持多架构 amd64, arm64, arm/v6, arm/v7 等)
+# 针对国内用户，可以使用阿里云加速，但保留原始结构以支持多架构
+# 使用 sed 在现有源后追加 contrib non-free
+RUN sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list && \
+    (sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list || true) && \
+    (sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list || true)
 
-# nginx site conf
-RUN mkdir -p /etc/nginx/sites-available/; \
-    mkdir -p /etc/nginx/sites-enabled/; \
-    mkdir -p /etc/nginx/ssl/; \
-    rm -Rf /var/www/*; \
-    mkdir /var/www/html/; \
-    chown -R nginx:root /var/www; \
-    chmod -R g=u /var/www
+# 合并安装步骤以减少层数并提高稳定性
+# 增加重试机制和网络容错，如果安装失败则回退到默认源
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    (apt-get update -y || (sleep 5 && apt-get update -y)) && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    gnupg \
+    unzip \
+    rsync \
+    nginx \
+    cron \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libwebp-dev \
+    libonig-dev \
+    libzip-dev \
+    libcurl4-openssl-dev \
+    libtidy-dev \
+    libxslt1-dev \
+    libmagickwand-dev \
+    libicu-dev \
+    libbz2-dev \
+    libxml2-dev \
+    libreadline-dev \
+    libedit-dev \
+    libheif-dev \
+    libopenjp2-7-dev \
+    imagemagick \
+    ffmpeg \
+    libraw-bin \
+    dcraw \
+    ghostscript || \
+    (echo "Installation failed, falling back to default mirrors..." && \
+     sed -i 's/mirrors.aliyun.com/deb.debian.org/g' /etc/apt/sources.list && \
+     apt-get update -y && \
+     apt-get install -y --no-install-recommends \
+     ca-certificates curl gnupg unzip nginx cron libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
+     libwebp-dev libonig-dev libzip-dev libcurl4-openssl-dev libtidy-dev libxslt1-dev \
+     libmagickwand-dev libicu-dev libbz2-dev libxml2-dev libreadline-dev libedit-dev libheif-dev \
+     libopenjp2-7-dev imagemagick ffmpeg libraw-bin dcraw ghostscript) \
+    && rm -rf /var/lib/apt/lists/*
 
-ADD conf/nginx-site.conf /etc/nginx/sites-available/default.conf
-ADD conf/nginx-site-ssl.conf /etc/nginx/sites-available/default-ssl.conf
-ADD conf/private-ssl.conf /etc/nginx/sites-available/private-ssl.conf
-RUN ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
-  
-# install the PHP extensions we need
-RUN set -ex; \
-    \
-    apk add --no-cache --virtual .build-deps \
-        $PHPIZE_DEPS \
-        autoconf \
-        freetype-dev \
-        icu-dev \
-        libevent-dev \
-        libjpeg-turbo-dev \
-        libmcrypt-dev \
-        libpng-dev \
-        libxml2-dev \
-        libzip-dev \
-        openldap-dev \
-        pcre-dev \
-        libwebp-dev \
-        gmp-dev \
-        bzip2-dev \
-        gettext-dev \
-        openssl-dev \
-        curl-dev \
-        sqlite-dev \
-        imagemagick-dev \
-    ; \
-    \
-    docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp; \
-    docker-php-ext-configure intl; \
-    docker-php-ext-configure ldap; \
-    docker-php-ext-install -j "$(nproc)" \
-        bcmath \
-        exif \
+# 配置并安装 PHP 扩展
+# 包括要求的扩展及常用的基础扩展
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install -j$(nproc) \
+        dom \
         gd \
+        curl \
+        mbstring \
         intl \
-        ldap \
-        opcache \
         pcntl \
-        pdo_sqlite \
-        pdo_mysql \
-	    mysqli \
+        posix \
+        simplexml \
+        xsl \
         zip \
-        gmp \
-        bz2 \
-        gettext \
+        tidy \
+        mysqli \
+        opcache \
+        pdo_mysql \
+        exif \
         sockets \
-    ; \
-    \
-# pecl will claim success even if one install fails, so we need to perform each install separately
-    pecl install redis; \
-    pecl install mcrypt; \
-    pecl install imagick; \
-    \
-    docker-php-ext-enable \
-        redis \
-        mcrypt \
-        imagick \
-    ; \
-    rm -r /tmp/pear; \    
-    \
-    runDeps="$( \
-        scanelf --needed --nobanner --format '%n#p' --recursive /usr/local/lib/php/extensions \
-            | tr ',' '\n' \
-            | sort -u \
-            | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
-    )"; \
-    apk add --virtual .pichome-phpext-rundeps $runDeps; \
-    apk del .build-deps
+        bz2 \
+        soap
 
-# tweak php-fpm config
-ENV fpm_conf /usr/local/etc/php-fpm.d/www.conf
-ENV php_vars /usr/local/etc/php/conf.d/docker-vars.ini
-RUN echo "cgi.fix_pathinfo=1" > ${php_vars} &&\
-    echo "upload_max_filesize = 512M"  >> ${php_vars} &&\
-    echo "post_max_size = 512M"  >> ${php_vars} &&\
-    echo "memory_limit = 512M"  >> ${php_vars} && \
-    echo "max_execution_time = 3600"  >> ${php_vars} && \
-    echo "max_input_time = 3600"  >> ${php_vars} && \
-    sed -i \
-        -e "s/;catch_workers_output\s*=\s*yes/catch_workers_output = yes/g" \
-        -e "s/pm.max_children = 5/pm.max_children = 50/g" \
-        -e "s/pm.start_servers = 2/pm.start_servers = 10/g" \
-        -e "s/pm.min_spare_servers = 1/pm.min_spare_servers = 10/g" \
-        -e "s/pm.max_spare_servers = 3/pm.max_spare_servers = 30/g" \
-        -e "s/;pm.max_requests = 500/pm.max_requests = 500/g" \
-        -e "s/user = www-data/user = nginx/g" \
-        -e "s/group = www-data/group = nginx/g" \
-        -e "s/;listen.mode = 0660/listen.mode = 0666/g" \
-        -e "s/;listen.owner = www-data/listen.owner = nginx/g" \
-        -e "s/;listen.group = www-data/listen.group = nginx/g" \
-        -e "s/listen = 127.0.0.1:9000/listen = \/var\/run\/php-fpm.sock/g" \
-        -e "s/^;clear_env = no$/clear_env = no/" \
-        ${fpm_conf}
 
-VOLUME /var/www/html
+# 安装 PECL 扩展: imagick, redis
+RUN pecl install imagick redis \
+    && docker-php-ext-enable imagick redis
 
-COPY entrypoint.sh /
+# 配置 ImageMagick 允许处理相关格式 (RAW, PDF, PSD, HEIC等)
+RUN for pattern in PDF EPS XPS PS PS2 PS3 PLT DNG CR2 PSD RAW; do \
+        sed -i "s/rights=\"none\" pattern=\"$pattern\"/rights=\"read|write\" pattern=\"$pattern\"/g" /etc/ImageMagick-6/policy.xml; \
+    done || true
 
-ENTRYPOINT ["/entrypoint.sh"]
-RUN chmod +x /entrypoint.sh
-CMD ["/usr/bin/supervisord","-n","-c","/etc/supervisord.conf"]
+# 安装 Composer (PHP 依赖管理工具)
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# 复制 Nginx 配置模板并清理默认配置
+RUN mkdir -p /etc/nginx/templates && \
+    rm -f /etc/nginx/sites-enabled/default
+COPY ./config/nginx.conf /etc/nginx/nginx.conf
+COPY ./config/nginx-http.conf /etc/nginx/templates/nginx-http.conf
+COPY ./config/nginx-https.conf /etc/nginx/templates/nginx-https.conf
+
+# 复制优化的 PHP 和 PHP-FPM 配置
+
+COPY ./config/custom-php.ini /usr/local/etc/php/conf.d/99-custom.ini
+COPY ./config/php-fpm-www.conf /usr/local/etc/php-fpm.d/www.conf
+
+# 复制启动脚本和定时任务脚本
+COPY ./config/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./config/cron-task.sh /usr/local/bin/cron-task.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/cron-task.sh
+
+# 设置定时任务 (每 5 分钟执行一次)
+RUN echo "*/5 * * * * root /usr/local/bin/cron-task.sh >> /var/log/cron.log 2>&1" > /etc/cron.d/cron-task && \
+    chmod 0644 /etc/cron.d/cron-task && \
+    touch /var/log/cron.log
+
+# 暴露 80 和 443 端口
+EXPOSE 80 443
+
+# 使用自定义启动脚本
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
