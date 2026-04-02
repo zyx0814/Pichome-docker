@@ -7,19 +7,18 @@ directory_empty() {
 }
 if  directory_empty "/var/www/html"; then
         if [ "$(id -u)" = 0 ]; then
-            rsync_options="-rlDog --chown nginx:root"
+            rsync_options="-rlDog --chown www-data:www-data"
         else
             rsync_options="-rlD"
         fi
         echo "PICHOME is downloading ..."
-        apt-get update && apt-get install -y --no-install-recommends gnupg
+        
         curl -fsSL -o pichome.zip "https://codeload.github.com/zyx0814/Pichome/zip/refs/heads/master"
         export GNUPGHOME="$(mktemp -d)"
         unzip pichome.zip -d /usr/src/
         gpgconf --kill all
         rm pichome.zip
         rm -rf "$GNUPGHOME"
-        apt-get purge -y --auto-remove gnupg && rm -rf /var/lib/apt/lists/*
         echo "PICHOME is installing ..."
         rsync $rsync_options --delete /usr/src/Pichome-master/ /var/www/html/
 else

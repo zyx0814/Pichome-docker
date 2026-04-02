@@ -88,10 +88,24 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
 RUN pecl install imagick redis \
     && docker-php-ext-enable imagick redis
 
-# 配置 ImageMagick 允许处理相关格式 (RAW, PDF, PSD, HEIC等)
-RUN for pattern in PDF EPS XPS PS PS2 PS3 PLT DNG CR2 PSD RAW; do \
-        sed -i "s/rights=\"none\" pattern=\"$pattern\"/rights=\"read|write\" pattern=\"$pattern\"/g" /etc/ImageMagick-6/policy.xml; \
-    done || true
+# 配置 ImageMagick 代理以使用 dcraw 处理 RAW/DNG 格式 (推荐两段式)
+RUN sed -i '/decode="\(dng:decode\|arw:decode\|cr2:decode\|nef:decode\|orf:decode\|rw2:decode\)"/d' /etc/ImageMagick-6/delegates.xml && \
+    sed -i '/<delegatemap>/a \  <delegate decode="dng:decode" stealth="True" command="\&quot;dcraw\&quot; -c -6 -W -o 1 \&quot;%i\&quot; > \&quot;%u.ppm\&quot;"/>' /etc/ImageMagick-6/delegates.xml && \
+    sed -i '/<delegatemap>/a \  <delegate decode="arw:decode" stealth="True" command="\&quot;dcraw\&quot; -c -6 -W -o 1 \&quot;%i\&quot; > \&quot;%u.ppm\&quot;"/>' /etc/ImageMagick-6/delegates.xml && \
+    sed -i '/<delegatemap>/a \  <delegate decode="cr2:decode" stealth="True" command="\&quot;dcraw\&quot; -c -6 -W -o 1 \&quot;%i\&quot; > \&quot;%u.ppm\&quot;"/>' /etc/ImageMagick-6/delegates.xml && \
+    sed -i '/<delegatemap>/a \  <delegate decode="nef:decode" stealth="True" command="\&quot;dcraw\&quot; -c -6 -W -o 1 \&quot;%i\&quot; > \&quot;%u.ppm\&quot;"/>' /etc/ImageMagick-6/delegates.xml && \
+    sed -i '/<delegatemap>/a \  <delegate decode="orf:decode" stealth="True" command="\&quot;dcraw\&quot; -c -6 -W -o 1 \&quot;%i\&quot; > \&quot;%u.ppm\&quot;"/>' /etc/ImageMagick-6/delegates.xml && \
+    sed -i '/<delegatemap>/a \  <delegate decode="rw2:decode" stealth="True" command="\&quot;dcraw\&quot; -c -6 -W -o 1 \&quot;%i\&quot; > \&quot;%u.ppm\&quot;"/>' /etc/ImageMagick-6/delegates.xml
+
+# 配置 ImageMagick 允许处理相关格式 (包括 RAW, PDF, PSD, HEIC, AVIF 等)
+RUN for pattern in PDF EPS XPS PS PS2 PS3 PLT DNG CR2 PSD RAW HEIC HEIF AVIF TIFF; do \
+        if grep -q "pattern=\"$pattern\"" /etc/ImageMagick-6/policy.xml; then \
+            sed -i "s/rights=\"none\" pattern=\"$pattern\"/rights=\"read|write\" pattern=\"$pattern\"/g" /etc/ImageMagick-6/policy.xml; \
+        else \
+            sed -i "/<\/policymap>/i \  <policy domain=\"coder\" rights=\"read|write\" pattern=\"$pattern\" \/>" /etc/ImageMagick-6/policy.xml; \
+        fi \
+    done && \
+    sed -i '/domain="path" rights="none" pattern="@*"/d' /etc/ImageMagick-6/policy.xml || true
 
 # 安装 Composer (PHP 依赖管理工具)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
