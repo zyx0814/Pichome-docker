@@ -11,18 +11,18 @@ if  directory_empty "/var/www/html"; then
         else
             rsync_options="-rlD"
         fi
-        echo "PICHOME is downloading ..."
+        echo "FilePress is downloading ..."
         
-        curl -fsSL -o pichome.zip "https://codeload.github.com/zyx0814/Pichome/zip/refs/heads/master"
+        curl -fsSL -o FilePress.zip "https://codeload.github.com/zyx0814/FilePress/zip/refs/heads/master"
         export GNUPGHOME="$(mktemp -d)"
-        unzip pichome.zip -d /usr/src/
+        unzip FilePress.zip -d /usr/src/
         gpgconf --kill all
-        rm pichome.zip
+        rm FilePress.zip
         rm -rf "$GNUPGHOME"
-        echo "PICHOME is installing ..."
-        rsync $rsync_options --delete /usr/src/Pichome-master/ /var/www/html/
+        echo "FilePress is installing ..."
+        rsync $rsync_options --delete /usr/src/FilePress-master/ /var/www/html/
 else
-        echo "PICHOME has been configured!"
+        echo "FilePress has been configured!"
 fi
 # 检查证书是否存在，并动态切换 Nginx 配置
 if [ -f "/etc/nginx/ssl/server.crt" ] && [ -f "/etc/nginx/ssl/server.key" ]; then
