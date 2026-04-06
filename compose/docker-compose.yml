@@ -20,12 +20,20 @@ services:
       - mysql_password
       - mysql_user
 
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - 6379:6379
+    environment:
+      - TZ=Asia/Shanghai
   app:
     image: oaooa/pichome
     ports:
       - 8088:80
     links:
       - db
+      - redis
     volumes:
       - "./site:/var/www/html"
       - "./ssl:/etc/nginx/ssl"

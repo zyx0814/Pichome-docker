@@ -1,5 +1,5 @@
-# 使用 PHP 7.4-FPM 作为基础镜像 (基于 Debian Bullseye)
-FROM php:7.4-fpm-bullseye
+# 使用 PHP 8.4-FPM 作为基础镜像 (基于 Debian Bookworm)
+FROM php:8.4-fpm-bookworm
 
 # 设置工作目录
 WORKDIR /var/www/html
@@ -10,10 +10,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # 替换为更通用的镜像源 (支持多架构 amd64, arm64, arm/v6, arm/v7 等)
 # 针对国内用户，可以使用阿里云加速，但保留原始结构以支持多架构
-# 使用 sed 在现有源后追加 contrib non-free
-RUN sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list && \
-    (sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list || true) && \
-    (sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list || true)
+# 使用 sed 在现有源后追加 contrib non-free (兼容 Debian 12)
+RUN find /etc/apt/sources.list* -type f -exec sed -i 's/main/main contrib non-free/g' {} + && \
+    find /etc/apt/sources.list* -type f -exec sed -i 's/deb.debian.org/mirrors.aliyun.com/g' {} + && \
+    find /etc/apt/sources.list* -type f -exec sed -i 's/security.debian.org/mirrors.aliyun.com/g' {} + || true
 
 # 合并安装步骤以减少层数并提高稳定性
 # 增加重试机制和网络容错，如果安装失败则回退到默认源
@@ -51,7 +51,7 @@ RUN apt-get clean && \
     dcraw \
     ghostscript || \
     (echo "Installation failed, falling back to default mirrors..." && \
-     sed -i 's/mirrors.aliyun.com/deb.debian.org/g' /etc/apt/sources.list && \
+     find /etc/apt/sources.list* -type f -exec sed -i 's/mirrors.aliyun.com/deb.debian.org/g' {} + && \
      apt-get update -y && \
      apt-get install -y --no-install-recommends \
      ca-certificates curl gnupg unzip nginx cron libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
@@ -85,8 +85,12 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
 
 
 # 安装 PECL 扩展: imagick, redis
-RUN pecl install imagick redis \
-    && docker-php-ext-enable imagick redis
+# 针对 PHP 8.4，imagick 需要从 master 分支编译以获得支持
+RUN mkdir -p /usr/src/php/ext/imagick && \
+    curl -fsSL https://github.com/Imagick/imagick/archive/refs/heads/master.tar.gz | tar xvz -C /usr/src/php/ext/imagick --strip-components=1 && \
+    docker-php-ext-install imagick && \
+    pecl install redis && \
+    docker-php-ext-enable redis
 
 # 配置 ImageMagick 代理以使用 dcraw 处理 RAW/DNG 格式 (推荐两段式)
 RUN sed -i '/decode="\(dng:decode\|arw:decode\|cr2:decode\|nef:decode\|orf:decode\|rw2:decode\)"/d' /etc/ImageMagick-6/delegates.xml && \
