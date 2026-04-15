@@ -76,6 +76,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         mysqli \
         opcache \
         pdo_mysql \
+        bcmath \
         exif \
         sockets \
         bz2 \
