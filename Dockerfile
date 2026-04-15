@@ -77,7 +77,6 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         zip \
         tidy \
         mysqli \
-        opcache \
         pdo_mysql \
         pdo_sqlite \
         sqlite3 \
