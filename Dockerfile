@@ -43,6 +43,7 @@ RUN apt-get clean && \
     libxml2-dev \
     libreadline-dev \
     libedit-dev \
+    libsqlite3-dev \
     libheif-dev \
     libopenjp2-7-dev \
     imagemagick \
@@ -56,7 +57,7 @@ RUN apt-get clean && \
      apt-get install -y --no-install-recommends \
      ca-certificates curl gnupg unzip nginx cron libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
      libwebp-dev libonig-dev libzip-dev libcurl4-openssl-dev libtidy-dev libxslt1-dev \
-     libmagickwand-dev libicu-dev libbz2-dev libxml2-dev libreadline-dev libedit-dev libheif-dev \
+     libmagickwand-dev libicu-dev libbz2-dev libxml2-dev libreadline-dev libedit-dev libsqlite3-dev libheif-dev \
      libopenjp2-7-dev imagemagick ffmpeg libraw-bin dcraw ghostscript) \
     && rm -rf /var/lib/apt/lists/*
 
@@ -78,6 +79,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         mysqli \
         opcache \
         pdo_mysql \
+        pdo_sqlite \
+        sqlite3 \
         exif \
         sockets \
         bz2 \
