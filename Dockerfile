@@ -63,23 +63,19 @@ RUN apt-get clean && \
 
 # 配置并安装 PHP 扩展
 # 包括要求的扩展及常用的基础扩展
+# 注意：在 PHP 8.4 中，curl, dom, mbstring, simplexml, pdo_sqlite, sqlite3 已内置，无需重复安装
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
-        dom \
         gd \
-        curl \
-        mbstring \
         intl \
         pcntl \
         posix \
-        simplexml \
         xsl \
         zip \
         tidy \
         mysqli \
+        opcache \
         pdo_mysql \
-        pdo_sqlite \
-        sqlite3 \
         exif \
         sockets \
         bz2 \
