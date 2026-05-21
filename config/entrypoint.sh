@@ -5,7 +5,7 @@ set -e
 directory_empty() {
     [ -z "$(ls -A "$1/")" ]
 }
-if  directory_empty "/var/www/html"; then
+if [ ! -f "/var/www/html/index.php" ]; then
         if [ "$(id -u)" = 0 ]; then
             rsync_options="-rlDog --chown www-data:www-data"
         else
