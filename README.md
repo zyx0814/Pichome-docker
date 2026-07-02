@@ -25,6 +25,13 @@ docker-compose up -d --build
 
 启动后，您可以通过 `http://localhost:8080` 访问服务。
 
+首次启动会进行 FilePress 安装，时间会比较长，请耐心等待约 10 分钟。
+
+首次启动会进入 FilePress 设置向导，比较重要的是数据库部分。如果您没有改动 `./compose` 目录中的 `txt` 文件，则只需要修改 `数据库服务器` 为:
+
+- Windows / macOS: `host.docker.internal:3307`
+- Linux: `172.17.0.1:3307`
+
 ### 2. 启用 HTTPS (可选)
 本环境支持动态切换到 HTTPS。只需在项目根目录执行以下操作：
 
