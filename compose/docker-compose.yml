@@ -10,10 +10,9 @@ services:
       - "./db:/var/lib/mysql"
     environment:
       - "TZ=Asia/Shanghai"
-      - "MYSQL_ROOT_PASSWORD=root@admin.0001"
       - "MYSQL_DATABASE_FILE=/run/secrets/mysql_db"
       - "MYSQL_USER_FILE=/run/secrets/mysql_user"
-      - "MYSQL_PASSWORD_FILE=/run/secrets/mysql_password"
+      - "MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_password"
     restart: always
     secrets:
       - mysql_db
