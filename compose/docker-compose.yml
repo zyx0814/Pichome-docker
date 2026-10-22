@@ -38,6 +38,11 @@ services:
       - "./site:/var/www/html"
       - "./ssl:/etc/nginx/ssl"
     environment:
+      # 挂载目录权限：把容器内 www-data 的 uid/gid 对齐到宿主机用户，
+      # 避免 bind mount 下 PHP/Nginx 无写权限。Linux 下建议改为 PUID=$(id -u) / PGID=$(id -g)；
+      # Windows(Docker Desktop) 保持默认 33/33 即可（bind mount 通常对所有用户可写）。
+      - "PUID=33"
+      - "PGID=33"
       - "MYSQL_SERVER=db"
       - "MYSQL_DATABASE_FILE=/run/secrets/mysql_db"
       - "MYSQL_USER_FILE=/run/secrets/mysql_user"

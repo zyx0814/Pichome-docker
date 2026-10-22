@@ -1,5 +1,10 @@
 # 使用 PHP 8.4-FPM 作为基础镜像 (基于 Debian Bookworm)
-FROM php:8.4-fpm-bookworm
+# 安全修复：CVE-2026-109618 / CVE-2026-109619（“php2shell”，未授权远程代码执行，CVSS 9.2）
+# 已由 PHP 官方在 2026-10-21 安全更新中修复，对应版本为 PHP 8.4.27。
+# 此处锁定到确切补丁版本，避免使用浮动标签 php:8.4-fpm-bookworm 时：
+#   1) 构建时拉取到漏洞版本；2) Docker 层缓存复用旧的未修复基础镜像。
+# 修复后请务必重新构建镜像并重新部署，再用 `php -v` 确认运行时为 8.4.27。
+FROM php:8.4.27-fpm-bookworm
 
 # 设置工作目录
 WORKDIR /var/www/html
