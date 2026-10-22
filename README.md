@@ -1,10 +1,10 @@
 # PHP 7.4 + Nginx 全功能多媒体 Web 服务容器
 
-这是一个高度优化的 Docker 环境，专为处理图像、视频和专业媒体资产而设计。它集成了 PHP 7.4-FPM、Nginx、ImageMagick、FFmpeg，并支持多架构（AMD64/ARM64）。基于 Debian Bullseye 以获得更好的现代格式（如 HEIC/AVIF）支持。
+这是一个高度优化的 Docker 环境，专为处理图像、视频和专业媒体资产而设计。它集成了 PHP 8.4-FPM、Nginx、ImageMagick、FFmpeg，并支持多架构（AMD64/ARM64）。基于 Debian Bullseye 以获得更好的现代格式（如 HEIC/AVIF）支持。
 
 ## 核心特性
 
-- **PHP 7.4-FPM**: 预装了所有必需的基础扩展以及 `mbstring`, `gd`, `zip`, `curl`, `tidy`, `xsl`, `imagick`, `redis`, `mysqli` 等。
+- **PHP 8.4-FPM**: 预装了所有必需的基础扩展以及 `mbstring`, `gd`, `zip`, `curl`, `tidy`, `xsl`, `imagick`, `redis`, `mysqli` 等。
 - **Nginx**: 高性能 Web 服务器，支持 HTTP/HTTPS。
 - **ImageMagick**: 支持各种专业图像格式，包括 RAW, CR2, DNG, PSD, WebP, TIFF, HEIC/HEIF 等。
 - **FFmpeg**: 完整的视频处理支持，可用于转码、生成缩略图等。
