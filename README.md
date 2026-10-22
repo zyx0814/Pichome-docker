@@ -69,3 +69,4 @@ docker-compose up -d --build
 
 ## 日志说明
 为了保持容器精简，所有 Nginx 和 PHP 的日志均已重定向到 `/dev/null`。如需开启，请修改相应的配置文件（`nginx-http.conf`, `nginx-https.conf`, `custom-php.ini`）并重建容器。
+
